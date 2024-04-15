@@ -12,7 +12,7 @@ public class DigestCalculator
 {
     public enum estados
     {
-        TOBECHEKED(0),
+        TOBECHECKED(0),
         OK(1),
         NOTOK(2),
         NOTFOUND(3),
@@ -22,7 +22,7 @@ public class DigestCalculator
     public static void main(String[] args) throws IOException
     {
         String[] argumentos = args;
-        HashSet<String> tiposSuportadosDigest = new HashSet<String>(Arrays.asList("MD5","SHA1","SHA256","SHA512"));
+        HashSet<String> tiposSuportadosDigest = new HashSet<String>(Arrays.asList("MD5","SHA1","SHA256","SHA512","SHA-1", "SHA-256", "SHA-512"));
     
         if (argumentos.length != 3)
         {
@@ -39,7 +39,10 @@ public class DigestCalculator
             System.err.println("Error: " + argumentos[0]+ " não é suportado");
             System.exit(1);
         }
-        
+        if (tipoDigest.equals("SHA1") || tipoDigest.equals("SHA256") || tipoDigest.equals("SHA512")) 
+        {
+			         tipoDigest = tipoDigest.substring(0, 3) + "-" + tipoDigest.substring(3);
+		      }
         File arquivoCal = new File(arquivosCalcular);
 
         if (!arquivoCal.exists())
@@ -66,19 +69,62 @@ public class DigestCalculator
     }
     
         //TODO implementar digestCalculate, recebe o arquivo e o tipo de digest, retorna o digest calculado e uma array de byte, procure o metodo update adequado
-        //private static byte[] digestCalculate(){}
+        //protected static byte[] digestCalculate(String tipoDigest, File conteudo) {
+	       //  retorna o digest calculado e uma array de byte, procure o metodo update
+		      //  adequado: Update(Byte[], Int32, Int32)
+		      //  byte[] result = {};
+		      //  try {
+			     //     MessageDigest calculadora = MessageDigest.getInstance(tipoDigest);
+			     //     calculadora.update()
+			     //     result = calculadora.digest();
+		      //  } catch (NoSuchAlgorithmException e) {
+			     //     System.err.println("Error: " + tipoDigest + " não é suportado por essa aplicação");
+			     //     System.exit(1);
+		      //  }
+		      //  return result;
+	       //}
         
         //TODO implementar disgestDetecColision, use algo como dicionario de python com os disgest como chave e os valores como listas e para cada no digest calculado, adicionar a lista adequada, no final, procure por listas com tamanho maior que 1 e marque os elementos com COLISION
-        //private static void digestDetectColision(){}
+        //protected static void digestDetectColision(List<Object[]> list) {
+		      //  use algo como dicionario de python com
+		      //  os digests como chave e os valores como listas e para cada no digest
+		      //  calculado, adicionar a lista adequada, no final, procure por listas com
+		      //  tamanho maior que 1 e marque os elementos com COLISION
+		      //  Hashmap <byte[], List<int>>mapeamento
+		      //  for (int i = 0; i< list.length;i++){
+		      //    byte[] digest = (byte[]) list[i][2];
+	       //    if(!mapeamento.contain(digest)){
+		      //      mapeamento.put(digest,new ArrayList<int>());
+		      //    }
+		      //    mapeamento[digest].add(i);
+		      //
+		      //  }
+		      //  for (List<int> i : capitalCities.values()) {
+		      // 	  if (i.size() > 1){
+		      // 		   for (int j:i){
+		      // 			    list[j][3] = Estados.COLISION;
+		      // 		   }
+		      // 	  }
+		      //  }
+		      //  return list
+	       //}
         
         //TODO implementar digestCompare, recebe a lista de digest calculado e compara com os digests salvos no arquivo XML, atualiza o campo de status de cada item com os valores adequados e chame o updateXML caso um ou mais elementos deram como NOTFOUND
-        //private static void digestCompare(){}
+        //protected static void digestCompare(List<Object> list, String[] XMLlist){}
         
         //TODO implementar updateXML, atualiza o arquivo XML recebido com as informações, prioridade: Digest entry> File entry> Catalog
-        //private static void updateXML(){}
+        //protected static void updateXML(String[] XMLlist, String newInfo, String digestType){}
         
         //TODO implementar printList, imprime a lista recebida no formato especificado no enunciado:
         //nome_arquivo <espaço> tipo_digest <espaço> digest_Hex_calculado <espaço> Status
         //IMPORTANTE: presta atenção como é salvo o hexadecimal comparado a string
-        //public static void printList(){}
+        //protected static void printList(List<Object[]> list){
+ 	      //  for (Object[] line: list){
+		      //	   String nomeArquivo = (String) line[0];
+		      //	   String tipoDigest = (String) line[1];
+		      //	   byte[] digest = (byte[]) line[2];
+		      //	   Estados estado = (Estados) line[3];
+		      //	   System.out.println(nomeArquivo + " " + tipoDigest + " " + digest + " " + estado);
+		      //  }
+        //}
 }
