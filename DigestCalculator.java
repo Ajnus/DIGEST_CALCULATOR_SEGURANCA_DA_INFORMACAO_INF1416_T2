@@ -15,6 +15,10 @@ import javax.crypto.*;
 import org.w3c.dom.*;
 import javax.xml.parsers.*;
 
+import org.xml.sax.*;
+import javax.xml.xpath.*;
+import java.io.*;
+
 public class DigestCalculator 
 {
     public enum Estados
@@ -248,7 +252,11 @@ public class DigestCalculator
 
 		    for(int i = 0; i < Arqinfo.getLength(); i++)
             {
-			    if(Arqinfo.item(i).getNodeName().equals("FILE_NAME")){continue;}
+			    if(Arqinfo.item(i).getNodeName().equals("FILE_NAME"))
+                {
+                    continue;
+                }
+
 			    NodeList DigestInfo = Arqinfo.item(i).getChildNodes();
 			    String DigestType = DigestInfo.item(0).getNodeValue();
 			    String DigestHex = DigestInfo.item(1).getNodeValue();
@@ -258,7 +266,7 @@ public class DigestCalculator
                     XMLdigests.put(DigestType, new HashSet<String>());
                 }
 
-			XMLdigests.get(DigestType).add(DigestHex);
+			    XMLdigests.get(DigestType).add(DigestHex);
 		    }
 	    }
 
