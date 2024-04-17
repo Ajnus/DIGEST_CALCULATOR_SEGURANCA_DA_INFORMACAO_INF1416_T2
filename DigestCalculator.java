@@ -6,7 +6,6 @@
 import java.util.*; 
  
 import java.io.File;
-import java.io.InputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
  
@@ -77,18 +76,23 @@ public class DigestCalculator
             System.exit(1);
         }
 	    
-	try{	
+	try
+	{	
 	    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 	    DocumentBuilder builder = factory.newDocumentBuilder();
 	    Document listXML = builder.parse(arquivoDi);
 	    listXML.getDocumentElement().normalize();
 			
-	} catch (ParserConfigurationException parserProblem){
+	} 
+	catch (ParserConfigurationException parserProblem)
+	{
 			
 	    System.err.println("error na configuração do parser de XML");
 	    System.exit(1);
 			
-	} catch(Exception SAXProblem){
+	} 
+	catch(Exception SAXProblem)
+	{
 			
 	    System.err.println("error na leitura do arquivo XML");
 	    System.exit(1);
@@ -98,11 +102,11 @@ public class DigestCalculator
 		
 	// cria lista de arquivos a serem calculados e dados como digest, tipo de digest
 	// e estado
-	List<Object> listaArquivos = new ArrayList<Object>();
+	List<Object[]> listaArquivos = new ArrayList<Object[]>();
 	for (File file : arquivoCal.listFiles()) {
 		String arquivoNomei = file.getName();
 		String digestTipoi = tipoDigest;
-		byte[] digesti = digestCalculate(digestTipoi, file);
+		String digesti = digestString(digestCalculate(digestTipoi, file));
 		Estados estado = Estados.TOBECHECKED;
 		Object[] linha = { (Object) arquivoNomei, (Object) digestTipoi, (Object) digesti, (Object) estado };
 		listaArquivos.add(linha);
@@ -111,33 +115,49 @@ public class DigestCalculator
 	//listaArquivos = digestCompare(listaArquivos, listXML);
 	//printList(listaArquivos);
     }
+	private static String DigestString(byte[] digest)
+	{
+		StringBuffer buf = new StringBuffer();
 
+		for(int i = 0; i < digest.length; i++) 
+		{
+			String hex = Integer.toHexString(0x0100 + (digest[i] & 0x00FF)).substring(1);
+			buf.append((hex.length() < 2 ? "0" : "") + hex);
+		}
+		return buf.toString();
+	}
         //TODO implementar digestCalculate, recebe o arquivo e o tipo de digest, retorna o digest calculado e uma array de byte, procure o metodo update adequado
         protected static byte[] digestCalculate(String tipoDigest, File conteudo) {
         //  retorna o digest calculado e uma array de byte, procure o metodo update
         //  adequado: Update(Byte[], Int32, Int32)
             int bufferSize = 1024;
 	    byte[] result = {};
-            try {
+            try 
+	    {
 		MessageDigest calculadora = MessageDigest.getInstance(tipoDigest);
 		byte[] bytebuffer = new byte[bufferSize];
 		FileInputStream leitor = new FileInputStream(conteudo);
 		int check = leitor.read(bytebuffer);
 			
-		while(check != -1){	
+		while(check != -1)
+		{	
 			calculadora.update(bytebuffer, 0, check);
 			check = leitor.read(bytebuffer);
-		}
+	    	}
 			
 		leitor.close();
 		result = calculadora.digest(); 
 			
-	    }catch(IOException e){
+	    }
+	    catch(IOException e)
+	    {
 			
 		System.err.println("Erro na leitura do arquivo durante o calculo do digest");
 		System.exit(1);
 			
-	    }catch (NoSuchAlgorithmException e) {
+	    }
+	    catch (NoSuchAlgorithmException e)
+	    {
 			
 		System.err.println("Error: " + tipoDigest + " não é suportado por essa aplicação");
 		System.exit(1);
@@ -152,15 +172,15 @@ public class DigestCalculator
         //  os digests como chave e os valores como listas e para cada no digest
         //  calculado, adicionar a lista adequada, no final, procure por listas com
         //  tamanho maior que 1 e marque os elementos com COLISION
-          HashMap <byte[], List<Integer>> mapeamento = new HashMap<byte[], List<Integer>>();
+          HashMap <byte[], List<Integer>> mapeamento = new HashMap<String, List<Integer>>();
           for (int i = 0; i< list.size();i++){
-            byte[] digest = (byte[]) list.get(i)[2];
+            String digest = (String) list.get(i)[2];
             if(!mapeamento.containsKey(digest)){
               mapeamento.put(digest,new ArrayList<Integer>());
             }
             mapeamento.get(digest).add(i);
           }
-          for (List<int> i : mapeamento.values()) {
+          for (List<Integer> i : mapeamento.values()) {
             if (i.size() > 1){
         	for (int j:i){
         	  list.get(j)[3] = Estados.COLISION;
@@ -171,7 +191,7 @@ public class DigestCalculator
         }
 
         //TODO implementar digestCompare, recebe a lista de digest calculado e compara com os digests salvos no arquivo XML, atualiza o campo de status de cada item com os valores adequados e chame o updateXML caso um ou mais elementos deram como NOTFOUND
-        protected static List<Object[]> digestCompare(List<Object> list, String[] XMLlist)
+        protected static List<Object[]> digestCompare(List<Object[]> list, Element XMLlist)
 	{
 		//crie um hashset com pares (tipo_digest, digest) e veja se algum item de list está incluso e marque no encontradoSet
 		//organize queries no XML
@@ -183,9 +203,22 @@ public class DigestCalculator
 		//COISION: true no encontradoSet e false no encontradoQuery
 		//NOTOK: false no encontradoSet e true no encontradoQuery
 
-		HashSet<{String,byte[]}> XMLdigests = new HashSet<{String,byte[]}>();
+		HashSet<String, HashSet<String>> XMLdigests = new HashSet<String, HashSet<String>>();
 		List<Boolean> encontradoSet = new ArrayList<Boolean>();
 		List<Boolean> encontradoQuerie = new ArrayList<Boolean>();
+
+		if(!XMLroot.hasChildNodes())
+		{
+		  for (Object[] line : list)
+		  {
+			Estados check = (Estados) line[3];
+			if(check == Estados.COLISION){continue;}
+				
+			line[3] = Estados.NOTFOUND;
+			//XMLUpdate ou acumula para fazer update com todos os novos digest
+		  }
+		  return list;
+		}
 		
 		return list;
 	}
@@ -200,15 +233,10 @@ public class DigestCalculator
           for (Object[] line: list){
             String nomeArquivo = (String) line[0];
             String tipoDigest = (String) line[1];
-            byte[] digest = (byte[]) line[2];
+            String digest = (String) line[2];
             Estados estado = (Estados) line[3];
-	    StringBuffer buf = new StringBuffer();
-			
-	    for(int i = 0; i < digest.length; i++) {
-		String hex = Integer.toHexString(0x0100 + (digest[i] & 0x00FF)).substring(1);
-		buf.append((hex.length() < 2 ? "0" : "") + hex);
-	    }
-            System.out.println(nomeArquivo + " " + tipoDigest + " " + buf + " " + estado);
+		  
+            System.out.println(nomeArquivo + " " + tipoDigest + " " + digest + " " + estado);
           }
         }
 }
