@@ -8,7 +8,6 @@ import java.util.*;
 import java.io.File;
 import java.io.InputStream;
 import java.io.FileInputStream;
-import java.io.BufferedReader;
 import java.io.IOException;
  
 import java.security.*;
@@ -19,13 +18,13 @@ import javax.xml.parsers.*;
 
 public class DigestCalculator 
 {
-    public enum estados
+    public enum Estados
     {
-        TOBECHECKED(0),
-        OK(1),
-        NOTOK(2),
-        NOTFOUND(3),
-        COLISION(4)
+        TOBECHECKED,
+        OK,
+        NOTOK,
+        NOTFOUND,
+        COLISION
     }
  
     public static void main(String[] args) throws IOException
@@ -108,8 +107,8 @@ public class DigestCalculator
 		Object[] linha = { (Object) arquivoNomei, (Object) digestTipoi, (Object) digesti, (Object) estado };
 		listaArquivos.add(linha);
 	}
-	//digestDetectColision(listaArquivos);
-	//digestCompare(listaArquivos, listXML);
+	//listaArquivos = digestDetectColision(listaArquivos);
+	//listaArquivos = digestCompare(listaArquivos, listXML);
 	//printList(listaArquivos);
     }
 
@@ -117,7 +116,8 @@ public class DigestCalculator
         protected static byte[] digestCalculate(String tipoDigest, File conteudo) {
         //  retorna o digest calculado e uma array de byte, procure o metodo update
         //  adequado: Update(Byte[], Int32, Int32)
-            byte[] result = {};
+            int bufferSize = 1024;
+	    byte[] result = {};
             try {
 		MessageDigest calculadora = MessageDigest.getInstance(tipoDigest);
 		byte[] bytebuffer = new byte[bufferSize];
@@ -147,31 +147,48 @@ public class DigestCalculator
         }
 
         //TODO implementar disgestDetecColision, use algo como dicionario de python com os disgest como chave e os valores como listas e para cada no digest calculado, adicionar a lista adequada, no final, procure por listas com tamanho maior que 1 e marque os elementos com COLISION
-        protected static void digestDetectColision(List<Object[]> list) {
+        protected static List<Object[]> digestDetectColision(List<Object[]> list) {
         //  use algo como dicionario de python com
         //  os digests como chave e os valores como listas e para cada no digest
         //  calculado, adicionar a lista adequada, no final, procure por listas com
         //  tamanho maior que 1 e marque os elementos com COLISION
-          Hashmap <byte[], List<int>>mapeamento
-          for (int i = 0; i< list.length;i++){
-            byte[] digest = (byte[]) list[i][2];
-            if(!mapeamento.contain(digest)){
-              mapeamento.put(digest,new ArrayList<int>());
+          HashMap <byte[], List<Integer>> mapeamento = new HashMap<byte[], List<Integer>>();
+          for (int i = 0; i< list.size();i++){
+            byte[] digest = (byte[]) list.get(i)[2];
+            if(!mapeamento.containsKey(digest)){
+              mapeamento.put(digest,new ArrayList<Integer>());
             }
-            mapeamento.put(digest,mapeamento.get().add(i);
+            mapeamento.get(digest).add(i);
           }
           for (List<int> i : mapeamento.values()) {
             if (i.size() > 1){
         	for (int j:i){
-        	  list[j][3] = Estados.COLISION;
+        	  list.get(j)[3] = Estados.COLISION;
          	}
 	    }
           }
-          return list
+          return list;
         }
 
         //TODO implementar digestCompare, recebe a lista de digest calculado e compara com os digests salvos no arquivo XML, atualiza o campo de status de cada item com os valores adequados e chame o updateXML caso um ou mais elementos deram como NOTFOUND
-        //protected static void digestCompare(List<Object> list, String[] XMLlist){}
+        protected static List<Object[]> digestCompare(List<Object> list, String[] XMLlist)
+	{
+		//crie um hashset com pares (tipo_digest, digest) e veja se algum item de list está incluso e marque no encontradoSet
+		//organize queries no XML
+		//primeiro nome do arquivo, segundo o tipo de digest, terceiro o digest
+		//no caso de falhas e encontros, registre no encontradoQuerie
+		//Compare os booleanos para os casos:
+		//OK: true em ambos
+		//NOTFOUND: false em ambos
+		//COISION: true no encontradoSet e false no encontradoQuery
+		//NOTOK: false no encontradoSet e true no encontradoQuery
+
+		HashSet<{String,byte[]}> XMLdigests = new HashSet<{String,byte[]}>();
+		List<Boolean> encontradoSet = new ArrayList<Boolean>();
+		List<Boolean> encontradoQuerie = new ArrayList<Boolean>();
+		
+		return list;
+	}
         
         //TODO implementar updateXML, atualiza o arquivo XML recebido com as informações, prioridade: Digest entry> File entry> Catalog
         //protected static void updateXML(String[] XMLlist, String newInfo, String digestType){}
@@ -191,7 +208,7 @@ public class DigestCalculator
 		String hex = Integer.toHexString(0x0100 + (digest[i] & 0x00FF)).substring(1);
 		buf.append((hex.length() < 2 ? "0" : "") + hex);
 	    }
-            System.out.println(nomeArquivo + " " + tipoDigest + " " + buff + " " + estado);
+            System.out.println(nomeArquivo + " " + tipoDigest + " " + buf + " " + estado);
           }
         }
 }
