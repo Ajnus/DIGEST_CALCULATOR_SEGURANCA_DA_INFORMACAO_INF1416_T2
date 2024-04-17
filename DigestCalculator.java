@@ -225,20 +225,85 @@ public class DigestCalculator
             List<Boolean> encontradoSet = new ArrayList<Boolean>();
             List<Boolean> encontradoQuerie = new ArrayList<Boolean>();
 
-		    if(!XMLroot.hasChildNodes())
-		    {
-		        for (Object[] line : list)
-		        {
-			        Estados check = (Estados) line[3];
+	    if(!XMLroot.hasChildNodes())
+	    {
+		for (Object[] line : list)
+		{
+			Estados check = (Estados) line[3];
                     
-			        if(check == Estados.COLISION){continue;}
+			if(check == Estados.COLISION){continue;}
 				
-			        line[3] = Estados.NOTFOUND;
-			        //XMLUpdate ou acumula para fazer update com todos os novos digest
-		        }
+			line[3] = Estados.NOTFOUND;
+			//XMLUpdate ou acumula para fazer update com todos os novos digest
+		}
             
-		        return list;
-		    }
+		return list;
+	  }
+	  for(Node childNode = root.getFirstChild(); childNode != null; childNode = childNode.getNextSibling()){
+		NodeList Arqinfo = childNode.getChildNodes();
+		for(int i = 0; i < Arqinfo.getLength(); i++){
+			if(Arqinfo.item(i).getNodeName().equals("FILE_NAME")){continue;}
+			NodeList DigestInfo = Arqinfo.item(i).getChildNodes();
+			String DigestType = DigestInfo.item(0).getNodeValue();
+			String DigestHex = DigestInfo.item(1).getNodeValue();
+			if(!XMLdigests.containsKey(DigestType)){XMLdigests.put(DigestType, new HashSet<String>());}
+			XMLdigests.get(DigestType).add(DigestHex);
+
+		}
+	}
+	for (Object[] line : list){
+		Estados check = (Estados) line[3];
+		if(check == Estados.COLISION){continue;}
+
+		String NomeArquivo = (String) line[0];
+		String digestTipo = (String) line[1];
+		String digest = (String) line[2];
+			
+		try{
+				
+			XPath xPath = XPathFactory.newInstance().newXPath();
+			encontradoSet.add(XMLdigests.get(digestTipo).contains(digest));
+			String expressaoArquivo = "/FILE_ENTRY[FILE_NAME = '"+NomeArquivo+"']/DIGEST_ENTRY[DIGEST_TYPE = '"+digestTipo+"']/DIGEST_HEX";
+			XPathExpression expr = xPath.compile(expressaoArquivo);
+			NodeList ProcuraDigest = (NodeList) expr.evaluate(XMLroot, XPathConstants.NODESET);
+			int tam = ProcuraDigest.getLength(); 
+			if (tam == 0){encontradoQuerie.add(false);continue;}
+			else if (tam > 1){
+				List<Integer> indices = ArrayList<Integer>();
+				for (int i = 0; i < tam; i++){
+					if(ProcuraDigest.item(i).getNodeValue().equals(digest)){indices.add(i);}
+				}
+				int numPositivos = indices.size();
+				if(numPositivos == 1){encontradoQuerie.add(true);}
+				else{encontradoQuerie.add(false);}
+				continue;
+			}
+			encontradoQuerie.add(digest.equals(ProcuraDigest.item(0).getNodeValue()));
+			} catch(XPathException x) {
+				
+				System.err.println("Erro no Xpath durante a procura dos arquivos");
+				System.exit(1);
+				
+			}
+			for (int i = 0; i < list.size(); i++){
+				boolean resultadoQuerie = encontradoQuerie.get(i);
+				boolean resultadoSet = encontradoSet.get(i);
+
+				if(resultadoQuerie && resultadoSet){
+					list.get(i)[3] = Estados.OK;
+				}
+				else if(resultadoQuerie && !resultadoSet){
+					list.get(i)[3] = Estados.NOTOK;
+				}
+				else if(!resultadoQuerie && resultadoSet){
+					list.get(i)[3] = Estados.COLISION;
+				}
+				else if(!resultadoQuerie && !resultadoSet){
+					list.get(i)[3] = Estados.NOTFOUND;
+					//XML Update ou acumula para um unico update
+				}
+			}
+		}
 
 		    return list;
 	    }
