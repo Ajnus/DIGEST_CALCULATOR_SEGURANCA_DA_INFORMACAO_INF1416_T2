@@ -360,6 +360,8 @@ public class DigestCalculator
 			
 			String nome = (String) line[0];
 			String tipo = (String) line[1];
+			if(tipo.equals("SHA-1")||tipo.equals("SHA-256")||tipo.equals("SHA-512"))
+			{tipo = tipo.substring(0, 3) + tipo.substring(4);}
 			String digest = (String) line[2];
 			String expressaoArquivo = "/FILE_ENTRY[FILE_NAME = '"+nome+"']";
 			
