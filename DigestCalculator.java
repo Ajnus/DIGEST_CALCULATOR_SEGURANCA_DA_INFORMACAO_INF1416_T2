@@ -358,7 +358,7 @@ public class DigestCalculator
     protected static void updateXML(Document XMLroot, List<Object[]> list){
 		Element root = XMLroot.getDocumentElement();
 		
-		for(Object line: list){
+		for(Object[] line: list){
 			Estados status = (Estados) line[3];
 			if(status!=Estados.NOTFOUND){continue;}
 			
