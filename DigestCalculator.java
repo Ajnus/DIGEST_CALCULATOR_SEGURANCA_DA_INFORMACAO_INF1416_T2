@@ -120,9 +120,10 @@ public class DigestCalculator
 		    listaArquivos.add(linha);
 	    }
 
-	    //listaArquivos = digestDetectColision(listaArquivos);
-	    //listaArquivos = digestCompare(listaArquivos, listXML);
-	    //printList(listaArquivos);
+	    listaArquivos = digestDetectColision(listaArquivos);
+	    listaArquivos = digestCompare(listaArquivos, listXML);
+	    updateXML(listXML, listaArquivos);
+	    printList(listaArquivos);
     }
 
 	private static String digestString(byte[] digest)
@@ -350,7 +351,55 @@ public class DigestCalculator
 	}
         
     //TODO implementar updateXML, atualiza o arquivo XML recebido com as informações, prioridade: Digest entry> File entry> Catalog
-    //protected static void updateXML(String[] XMLlist, String newInfo, String digestType){}
+    protected static void updateXML(Document XMLroot, List<Object[]> list){
+		Element root = XMLroot.getDocumentElement();
+		
+		for(Object line: list){
+			Estados status = (Estados) line[3];
+			if(status!=Estados.NOTFOUND){continue;}
+			
+			String nome = (String) line[0];
+			String tipo = (String) line[1];
+			String digest = (String) line[2];
+			String expressaoArquivo = "/FILE_ENTRY[FILE_NAME = '"+nome+"']";
+			
+			try{
+				Node digestHex = XMLroot.createElement("DIGEST_HEX");
+				Node digestHexText = XMLroot.createTextNode(digest);
+				digestHex.appendChild(digestHexText);
+				
+				Node digestType = XMLroot.createElement("DIGEST_TYPE");
+				Node digestTypeText = XMLroot.createTextNode(tipo);
+				digestType.appendChild(digestTypeText);
+				
+				Node digestEntry = XMLroot.createElement("DIGEST_ENTRY");
+				digestEntry.appendChild(digestType);
+				digestEntry.appendChild(digestHex);
+				
+				XPath xPath = XPathFactory.newInstance().newXPath();
+				XPathExpression expr = xPath.compile(expressaoArquivo);
+				NodeList ProcuraArquivo = (NodeList) expr.evaluate(XMLroot, XPathConstants.NODESET);
+				
+				int tam = ProcuraArquivo.getLength(); 
+				if (tam == 0){
+					Node fileName = XMLroot.createElement("FILE_NAME");
+					Node fileNameText = XMLroot.createTextNode(nome);
+					fileName.appendChild(fileNameText);
+					
+					Node fileEntry = XMLroot.createElement("FILE_ENTRY");
+					fileEntry.appendChild(fileName);
+					fileEntry.appendChild(digestEntry);
+					root.appendChild(fileEntry);
+				}
+				else{
+					ProcuraArquivo.item(0).appendChild(digestEntry);
+				}
+			} catch(Exception e) {
+				System.err.println("Erro na escrita do arquivo XML");
+				System.exit(1);
+			}
+		}
+	}
         
     //TODO implementar printList, imprime a lista recebida no formato especificado no enunciado:
     //nome_arquivo <espaço> tipo_digest <espaço> digest_Hex_calculado <espaço> Status
