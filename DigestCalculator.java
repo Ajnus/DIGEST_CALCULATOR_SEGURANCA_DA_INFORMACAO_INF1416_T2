@@ -81,12 +81,16 @@ public class DigestCalculator
             System.err.println("Error: " + argumentos[2]+ " não é um arquivo");
             System.exit(1);
         }
-	    
-        try
+
+	DocumentBuilderFactory factory;
+	DocumentBuilder builder;
+	Document listXML = null;
+        
+	try
         {	
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            DocumentBuilder builder = factory.newDocumentBuilder();
-            Document listXML = builder.parse(arquivoDi);
+            factory = DocumentBuilderFactory.newInstance();
+            builder = factory.newDocumentBuilder();
+            listXML = builder.parse(arquivoDi);
             listXML.getDocumentElement().normalize();
                 
         } 
