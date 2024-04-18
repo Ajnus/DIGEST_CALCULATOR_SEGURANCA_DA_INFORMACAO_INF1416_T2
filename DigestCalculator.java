@@ -227,7 +227,7 @@ public class DigestCalculator
         //NOTOK: false no encontradoSet e true no encontradoQuery
 
         Element root = XMLroot.getDocumentElement();
-        HashSet<HashMap<String,String>> XMLdigests = new HashSet<HashMap<String,String>>();
+        HashMap<String,HashSet<String>> XMLdigests = new HashMap<String,HashSet<String>>();
         List<Boolean> encontradoSet = new ArrayList<Boolean>();
         List<Boolean> encontradoQuerie = new ArrayList<Boolean>();
 
@@ -295,7 +295,7 @@ public class DigestCalculator
                 }
 			    else if (tam > 1)
                 {
-				    List<Integer> indices = ArrayList<Integer>();
+				    List<Integer> indices = new ArrayList<Integer>();
 
 				    for (int i = 0; i < tam; i++)
                     {
